@@ -77,7 +77,7 @@ const CodeViewer = ({
   };
   
   return (
-    <Card className="h-full shadow-lg">
+    <Card className="h-full shadow-lg flex flex-col">
       <CardHeader className="flex-row items-center justify-between">
         <CardTitle className="text-lg">Code Viewer</CardTitle>
          <Button variant="ghost" size="sm" onClick={() => copyToClipboard(code, 'Code')}>
@@ -85,8 +85,8 @@ const CodeViewer = ({
             Copy Code
         </Button>
       </CardHeader>
-      <CardContent>
-        <ScrollArea className="h-[65vh] font-code text-sm">
+      <CardContent className="flex-1 min-h-0">
+        <ScrollArea className="h-full font-code text-sm">
           <pre className="p-1">
             {code.split('\n').map((line, i) => {
               const lineNumber = i + 1;
@@ -162,8 +162,8 @@ export default function ScanResults({
   const currentFixId = selectedIssue ? `${selectedIssue.type}-${selectedIssue.index}` : null;
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start h-full">
-      {/* Left Column */}
+    <div className="grid grid-rows-[auto_1fr] gap-6 h-full">
+      {/* Top Row */}
       <div className="flex flex-col gap-6">
         <Card className="shadow-lg">
           <CardHeader>
@@ -296,7 +296,7 @@ export default function ScanResults({
         </Card>
 
       </div>
-      {/* Right Column */}
+      {/* Bottom Row */}
       <CodeViewer
         code={originalCode}
         issue={selectedIssue?.issue ?? null}

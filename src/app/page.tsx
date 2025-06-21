@@ -34,7 +34,7 @@ export default function GoodCodeApp() {
   const renderContent = () => {
     switch (activeView) {
       case "scanner":
-        return <ScannerPage addScanToHistory={addScanToHistory} initialScan={initialScan} setInitialScan={setInitialScan} />;
+        return <ScannerPage key={initialScan?.id || 'new-scan'} addScanToHistory={addScanToHistory} initialScan={initialScan} setInitialScan={setInitialScan} />;
       case "dashboard":
         return <DashboardPage scanHistory={scanHistory} viewScan={viewScanFromHistory} />;
       default:

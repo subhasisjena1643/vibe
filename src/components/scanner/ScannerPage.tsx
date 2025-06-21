@@ -29,11 +29,14 @@ export default function ScannerPage({ addScanToHistory, initialScan, setInitialS
   const {toast} = useToast();
 
   React.useEffect(() => {
-    setFileContent(initialScan?.code ?? null);
-    setFileName(initialScan?.fileName ?? null);
-    setScanResult(initialScan?.result ?? null);
-    setSimplifiedCode(initialScan?.simplifiedCode);
-    setCurrentHistoryItem(initialScan ?? null);
+    // This effect ensures the component state is correctly initialized when viewing a scan from history.
+    if (initialScan) {
+      setFileContent(initialScan.code);
+      setFileName(initialScan.fileName);
+      setScanResult(initialScan.result);
+      setSimplifiedCode(initialScan.simplifiedCode);
+      setCurrentHistoryItem(initialScan);
+    }
   }, [initialScan]);
 
 
@@ -146,12 +149,15 @@ export default function ScannerPage({ addScanToHistory, initialScan, setInitialS
       const newCode = data.fixedCode;
       setFileContent(newCode);
 
+      // Clear the scan results as they are now stale
+      setScanResult({ vulnerabilities: [], improvements: [] });
+
       // Create a new history item for this edit
       const newHistoryItem: ScanHistoryItem = {
         ...currentHistoryItem,
         id: new Date().toISOString(), // new ID for this state
         code: newCode,
-        // We might want to clear the old results as they are now stale
+        // The old results are stale, so we clear them.
         result: { vulnerabilities: [], improvements: [] }, 
       };
 
