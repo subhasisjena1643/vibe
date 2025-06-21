@@ -109,7 +109,7 @@ export default function GoodCodeApp() {
               >
                 <Users />
                 <span>Teams</span>
-                <span className="ml-auto rounded-full bg-accent/20 px-2 py-0.5 text-xs text-accent">
+                <span className="ml-auto bg-accent/20 px-2 py-0.5 text-xs text-accent">
                   Beta
                 </span>
               </SidebarMenuButton>
@@ -140,13 +140,13 @@ export default function GoodCodeApp() {
         <header className="flex h-14 items-center justify-between border-b bg-background/80 px-4 backdrop-blur-sm md:h-16 md:px-6">
           <div className="flex items-center gap-2">
             <SidebarTrigger className="md:hidden" />
+            <span className="text-primary font-bold text-xl">&gt;</span>
             <h1 className="text-lg font-headline md:text-xl">
               {activeView.charAt(0).toUpperCase() + activeView.slice(1)}
             </h1>
           </div>
           <Button variant="outline" size="sm">
-            <Bot className="mr-2 h-4 w-4" />
-            Get Pro
+            <span className="text-accent">[</span>UPGRADE<span className="text-accent">]</span>
           </Button>
         </header>
         <main className="flex flex-1 flex-col overflow-auto p-4 md:p-6">

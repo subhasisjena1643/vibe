@@ -93,7 +93,7 @@ export default function FileUpload({ onCodeSubmitted }: FileUploadProps) {
           onDragLeave={handleDragLeave}
           onDragOver={handleDragOver}
           onDrop={handleDrop}
-          className={`flex flex-col items-center justify-center space-y-4 rounded-lg border-2 border-dashed p-12 text-center transition-colors ${
+          className={`flex flex-col items-center justify-center space-y-4 border-2 border-dashed p-12 text-center transition-colors ${
             isDragging ? "border-primary bg-primary/10" : "border-border"
           }`}
         >
@@ -134,7 +134,7 @@ export default function FileUpload({ onCodeSubmitted }: FileUploadProps) {
           <Textarea
             value={pastedCode}
             onChange={(e) => setPastedCode(e.target.value)}
-            placeholder="int main() {&#10;  std::cout << &quot;Hello, World!&quot; << std::endl;&#10;  return 0;&#10;}"
+            placeholder="> Paste code here..."
             className="font-code h-64 bg-muted/50"
           />
           <div className="flex justify-center">

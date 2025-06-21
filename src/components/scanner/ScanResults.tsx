@@ -95,7 +95,7 @@ export default function ScanResults({
                     <p className="text-sm"><strong className="font-medium text-muted-foreground">Location:</strong> <code className="font-code text-sm">{vuln.location}</code></p>
                     <div>
                       <h4 className="font-medium mb-2 text-muted-foreground">Suggested Fix:</h4>
-                      <pre className="bg-muted p-4 rounded-md relative font-code text-sm overflow-auto">
+                      <pre className="bg-muted p-4 relative font-code text-sm overflow-auto">
                         <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={() => copyToClipboard(vuln.suggestedFix, 'Fix')}>
                             <Copy className="h-4 w-4" />
                         </Button>
@@ -117,7 +117,7 @@ export default function ScanResults({
                     <p className="text-sm"><strong className="font-medium text-muted-foreground">Location:</strong> <code className="font-code text-sm">{imp.location}</code></p>
                      <div>
                       <h4 className="font-medium mb-2 text-muted-foreground">Suggested Code:</h4>
-                      <pre className="bg-muted p-4 rounded-md relative font-code text-sm overflow-auto">
+                      <pre className="bg-muted p-4 relative font-code text-sm overflow-auto">
                         <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={() => copyToClipboard(imp.suggestedCode, 'Code')}>
                             <Copy className="h-4 w-4" />
                         </Button>
@@ -132,11 +132,11 @@ export default function ScanResults({
 
           <TabsContent value="simplify" className="mt-4">
             {!simplifiedCode ? (
-              <div className="text-center p-8 border-dashed border-2 rounded-lg">
+              <div className="text-center p-8 border-dashed border-2">
                 <h3 className="font-headline text-lg">Simplify Your Code with AI</h3>
                 <p className="text-muted-foreground mb-4">Minimize lines and memory usage while preserving logic.</p>
                 <Button onClick={onSimplify} disabled={isSimplifying}>
-                    {isSimplifying ? "Simplifying..." : "Simplify Code"}
+                    {isSimplifying ? "Executing..." : "Run simplify.sh"}
                     {!isSimplifying && <Sparkles className="ml-2 h-4 w-4" />}
                 </Button>
               </div>
@@ -144,7 +144,7 @@ export default function ScanResults({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <h3 className="font-headline mb-2 text-center">Original Code</h3>
-                         <ScrollArea className="h-96 rounded-md border">
+                         <ScrollArea className="h-96 border">
                             <pre className="p-4 font-code text-sm relative">
                                 <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={() => copyToClipboard(originalCode, 'Original Code')}>
                                     <Copy className="h-4 w-4" />
@@ -155,7 +155,7 @@ export default function ScanResults({
                     </div>
                     <div>
                         <h3 className="font-headline mb-2 text-center">Simplified Code</h3>
-                        <ScrollArea className="h-96 rounded-md border bg-primary/5 border-primary/20">
+                        <ScrollArea className="h-96 border bg-primary/5 border-primary/20">
                              <pre className="p-4 font-code text-sm relative">
                                  <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={() => copyToClipboard(simplifiedCode, 'Simplified Code')}>
                                     <Copy className="h-4 w-4" />
