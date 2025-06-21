@@ -88,14 +88,22 @@ export default function ScannerPage({ addScanToHistory, initialScan, setInitialS
         throw new Error(error || "No data returned from simplification.");
       }
       const newSimplifiedCode = data.simplifiedCode;
+      
+      // Update the main code content to the simplified version
+      setFileContent(newSimplifiedCode); 
       setSimplifiedCode(newSimplifiedCode);
 
       const updatedItem: ScanHistoryItem = {
         ...currentHistoryItem,
+        code: newSimplifiedCode, // The simplified code becomes the new base code
         simplifiedCode: newSimplifiedCode,
       };
       addScanToHistory(updatedItem);
       setCurrentHistoryItem(updatedItem);
+      toast({
+        title: "Code Simplified",
+        description: "The simplified code is now the active version in the editor. You may re-scan for new insights."
+      })
 
     } catch (error) {
       console.error(error);
@@ -138,16 +146,21 @@ export default function ScannerPage({ addScanToHistory, initialScan, setInitialS
       const newCode = data.fixedCode;
       setFileContent(newCode);
 
-      const updatedItem: ScanHistoryItem = {
+      // Create a new history item for this edit
+      const newHistoryItem: ScanHistoryItem = {
         ...currentHistoryItem,
+        id: new Date().toISOString(), // new ID for this state
         code: newCode,
+        // We might want to clear the old results as they are now stale
+        result: { vulnerabilities: [], improvements: [] }, 
       };
-      addScanToHistory(updatedItem);
-      setCurrentHistoryItem(updatedItem);
+
+      addScanToHistory(newHistoryItem);
+      setCurrentHistoryItem(newHistoryItem);
 
       toast({
         title: "Fix Applied",
-        description: "The analysis below may be outdated. Re-scan for an up-to-date report.",
+        description: "The code has been updated. Re-scan for an up-to-date report.",
       });
 
     } catch (error) {
@@ -176,7 +189,7 @@ export default function ScannerPage({ addScanToHistory, initialScan, setInitialS
   }
   
   return (
-    <div className="w-full max-w-4xl mx-auto">
+    <div className="w-full h-full">
       {!fileContent || !scanResult ? (
         <FileUpload onCodeSubmitted={handleCodeSubmit} />
       ) : (
@@ -198,7 +211,7 @@ export default function ScannerPage({ addScanToHistory, initialScan, setInitialS
 
 function LoadingState({fileName}: {fileName: string | null}) {
   return (
-    <Card className="w-full max-w-4xl mx-auto animate-pulse">
+    <Card className="w-full max-w-2xl mx-auto animate-pulse shadow-lg">
       <CardHeader>
         <div className="flex items-center gap-3">
             <FileCode className="h-6 w-6 text-muted-foreground" />
@@ -207,17 +220,17 @@ function LoadingState({fileName}: {fileName: string | null}) {
       </CardHeader>
       <CardContent className="space-y-6 pt-2">
         <div className="flex items-center space-x-4">
-          <Bot className="h-10 w-10 text-primary" />
+          <Bot className="h-10 w-10 text-primary animate-bounce" />
           <div className="space-y-2 flex-1">
             <p className="font-medium font-headline text-primary">GoodCode AI is scanning for vulnerabilities...</p>
             <p className="text-sm text-muted-foreground">This may take a few moments. Please wait.</p>
           </div>
         </div>
-        <Skeleton className="h-8 w-1/3" />
+        <Skeleton className="h-8 w-1/3 rounded-lg" />
         <div className="space-y-4">
-          <Skeleton className="h-12 w-full" />
-          <Skeleton className="h-12 w-full" />
-          <Skeleton className="h-12 w-full" />
+          <Skeleton className="h-12 w-full rounded-lg" />
+          <Skeleton className="h-12 w-full rounded-lg" />
+          <Skeleton className="h-12 w-full rounded-lg" />
         </div>
       </CardContent>
     </Card>

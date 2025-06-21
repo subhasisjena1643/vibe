@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { ShieldCheck, History, Code } from "lucide-react";
+import { ShieldCheck, History, Code2 } from "lucide-react";
 import type { ScanHistoryItem } from "@/types";
 import ScannerPage from "@/components/scanner/ScannerPage";
 import DashboardPage from "@/components/dashboard/DashboardPage";
@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button";
 
 type View = "scanner" | "dashboard";
 
-export default function GoodCodeCLI() {
+export default function GoodCodeApp() {
   const [activeView, setActiveView] = React.useState<View>("scanner");
   const [scanHistory, setScanHistory] = React.useState<ScanHistoryItem[]>([]);
   const [initialScan, setInitialScan] = React.useState<ScanHistoryItem | undefined>(undefined);
@@ -43,41 +43,39 @@ export default function GoodCodeCLI() {
   };
 
   return (
-    <div className="flex min-h-svh w-full flex-col bg-background font-code text-foreground">
-      <header className="flex h-12 shrink-0 items-center justify-between border-b border-border px-4">
-        <div className="flex items-center gap-2">
-          <Code className="h-5 w-5 text-primary" />
-          <h1 className="font-bold">GoodCode.sh</h1>
+    <div className="flex min-h-screen w-full flex-col bg-background">
+      <header className="flex h-16 shrink-0 items-center justify-between border-b border-border px-6">
+        <div className="flex items-center gap-3">
+          <Code2 className="h-7 w-7 text-primary" />
+          <h1 className="font-headline text-xl font-bold tracking-tighter">GoodCode</h1>
         </div>
-        <nav className="flex items-center gap-2">
+        <nav className="flex items-center gap-2 rounded-lg bg-secondary p-1">
           <Button
-            variant={activeView === "scanner" ? "secondary" : "ghost"}
+            variant={activeView === "scanner" ? "primary" : "ghost"}
             size="sm"
             onClick={() => {
               setInitialScan(undefined);
               setActiveView("scanner");
             }}
+            className="rounded-md"
           >
             <ShieldCheck className="mr-2 h-4 w-4" />
-            ./scanner
+            Scanner
           </Button>
           <Button
-            variant={activeView === "dashboard" ? "secondary" : "ghost"}
+            variant={activeView === "dashboard" ? "primary" : "ghost"}
             size="sm"
             onClick={() => setActiveView("dashboard")}
+            className="rounded-md"
           >
             <History className="mr-2 h-4 w-4" />
-            ./history
+            History
           </Button>
         </nav>
       </header>
       <main className="flex flex-1 flex-col overflow-auto p-4 md:p-6">
         {renderContent()}
       </main>
-      <footer className="border-t border-border px-4 py-2 text-xs text-muted-foreground">
-        {`goodcode> `}
-        <span className="animate-pulse">_</span>
-      </footer>
     </div>
   );
 }
