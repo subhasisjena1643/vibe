@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, Wrench, Sparkles, FileCode, RotateCcw, Copy } from "lucide-react";
+import { AlertTriangle, Wrench, Sparkles, FileCode, RotateCcw, Copy, Wand2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -18,6 +18,12 @@ interface ScanResultsProps {
   onSimplify: () => void;
   isSimplifying: boolean;
   onReset: () => void;
+  onApplyFix: (
+    fix: VulnerabilityScannerOutput['vulnerabilities'][0] | VulnerabilityScannerOutput['improvements'][0],
+    type: 'vulnerability' | 'improvement',
+    index: number
+  ) => void;
+  isApplyingFix: string | null;
 }
 
 export default function ScanResults({
@@ -28,6 +34,8 @@ export default function ScanResults({
   onSimplify,
   isSimplifying,
   onReset,
+  onApplyFix,
+  isApplyingFix,
 }: ScanResultsProps) {
   const { toast } = useToast();
 
@@ -38,6 +46,8 @@ export default function ScanResults({
   
   const getSeverityBadge = (severity: string) => {
     switch (severity.toLowerCase()) {
+      case "critical":
+        return "destructive";
       case "high":
         return "destructive";
       case "medium":
@@ -86,7 +96,7 @@ export default function ScanResults({
               {scanResult.vulnerabilities.map((vuln, index) => (
                 <AccordionItem value={`vuln-${index}`} key={index}>
                   <AccordionTrigger>
-                    <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-4 text-left">
                       <Badge variant={getSeverityBadge(vuln.severity)}>{vuln.severity}</Badge>
                       <span>{vuln.description}</span>
                     </div>
@@ -102,6 +112,22 @@ export default function ScanResults({
                         <code>{vuln.suggestedFix}</code>
                       </pre>
                     </div>
+                     <div className="flex justify-end">
+                      <Button
+                        size="sm"
+                        onClick={() => onApplyFix(vuln, 'vulnerability', index)}
+                        disabled={!!isApplyingFix}
+                      >
+                        {isApplyingFix === `vulnerability-${index}` ? (
+                          "Applying..."
+                        ) : (
+                          <>
+                            <Wand2 className="mr-2 h-4 w-4" />
+                            Apply Fix
+                          </>
+                        )}
+                      </Button>
+                    </div>
                   </AccordionContent>
                 </AccordionItem>
               ))}
@@ -112,7 +138,7 @@ export default function ScanResults({
              <Accordion type="single" collapsible className="w-full">
               {scanResult.improvements.map((imp, index) => (
                 <AccordionItem value={`imp-${index}`} key={index}>
-                  <AccordionTrigger>{imp.description}</AccordionTrigger>
+                  <AccordionTrigger className="text-left">{imp.description}</AccordionTrigger>
                   <AccordionContent className="space-y-4">
                     <p className="text-sm"><strong className="font-medium text-muted-foreground">Location:</strong> <code className="font-code text-sm">{imp.location}</code></p>
                      <div>
@@ -123,6 +149,22 @@ export default function ScanResults({
                         </Button>
                         <code>{imp.suggestedCode}</code>
                       </pre>
+                    </div>
+                    <div className="flex justify-end">
+                      <Button
+                        size="sm"
+                        onClick={() => onApplyFix(imp, 'improvement', index)}
+                        disabled={!!isApplyingFix}
+                      >
+                        {isApplyingFix === `improvement-${index}` ? (
+                          "Applying..."
+                        ) : (
+                          <>
+                            <Wand2 className="mr-2 h-4 w-4" />
+                            Apply Improvement
+                          </>
+                        )}
+                      </Button>
                     </div>
                   </AccordionContent>
                 </AccordionItem>
@@ -135,7 +177,7 @@ export default function ScanResults({
               <div className="text-center p-8 border-dashed border-2">
                 <h3 className="font-headline text-lg">Simplify Your Code with AI</h3>
                 <p className="text-muted-foreground mb-4">Minimize lines and memory usage while preserving logic.</p>
-                <Button onClick={onSimplify} disabled={isSimplifying}>
+                <Button onClick={onSimplify} disabled={isSimplifying || !!isApplyingFix}>
                     {isSimplifying ? "Executing..." : "Run simplify.sh"}
                     {!isSimplifying && <Sparkles className="ml-2 h-4 w-4" />}
                 </Button>

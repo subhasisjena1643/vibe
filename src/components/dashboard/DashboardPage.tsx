@@ -57,7 +57,14 @@ export default function DashboardPage({ scanHistory, viewScan }: DashboardPagePr
           <TableBody>
             {scanHistory.map((scan) => (
               <TableRow key={scan.id}>
-                <TableCell className="font-medium">{scan.fileName}</TableCell>
+                <TableCell>
+                   <button
+                      onClick={() => viewScan(scan)}
+                      className="font-medium text-left transition-colors hover:text-primary"
+                    >
+                      {scan.fileName}
+                    </button>
+                </TableCell>
                 <TableCell>{format(scan.timestamp, "PPP p")}</TableCell>
                 <TableCell className="text-center">{scan.result.vulnerabilities.length}</TableCell>
                 <TableCell className="text-center">{scan.result.improvements.length}</TableCell>

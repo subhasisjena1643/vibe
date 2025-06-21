@@ -1,9 +1,9 @@
 "use client";
 
 import * as React from "react";
-import {FileCode, Bot, Sparkles} from "lucide-react";
+import {FileCode, Bot} from "lucide-react";
 import {useToast} from "@/hooks/use-toast";
-import {runScan, runCodeSimplification} from "@/app/actions";
+import {runScan, runCodeSimplification, runApplyFix} from "@/app/actions";
 import type {ScanHistoryItem} from "@/types";
 import type {VulnerabilityScannerOutput} from "@/ai/flows/vulnerability-scanner";
 import FileUpload from "./FileUpload";
@@ -24,6 +24,7 @@ export default function ScannerPage({ addScanToHistory, initialScan, setInitialS
   const [isScanning, setIsScanning] = React.useState(false);
   const [simplifiedCode, setSimplifiedCode] = React.useState<string | undefined>(initialScan?.simplifiedCode);
   const [isSimplifying, setIsSimplifying] = React.useState(false);
+  const [isApplyingFix, setIsApplyingFix] = React.useState<string | null>(null);
   const [currentHistoryItem, setCurrentHistoryItem] = React.useState<ScanHistoryItem | null>(initialScan ?? null);
   const {toast} = useToast();
 
@@ -96,10 +97,6 @@ export default function ScannerPage({ addScanToHistory, initialScan, setInitialS
       addScanToHistory(updatedItem);
       setCurrentHistoryItem(updatedItem);
 
-      toast({
-        title: "Code Simplified",
-        description: "The AI has simplified your code.",
-      });
     } catch (error) {
       console.error(error);
       toast({
@@ -110,6 +107,58 @@ export default function ScannerPage({ addScanToHistory, initialScan, setInitialS
       });
     } finally {
       setIsSimplifying(false);
+    }
+  };
+
+  const handleApplyFix = async (
+    fix: VulnerabilityScannerOutput['vulnerabilities'][0] | VulnerabilityScannerOutput['improvements'][0],
+    type: 'vulnerability' | 'improvement',
+    index: number
+  ) => {
+    if (!fileContent || !currentHistoryItem) return;
+
+    const fixId = `${type}-${index}`;
+    setIsApplyingFix(fixId);
+
+    const fixDescription = `
+      Description: ${fix.description}
+      Location: ${fix.location}
+      Suggested Change:
+      \`\`\`cpp
+      ${'suggestedFix' in fix ? fix.suggestedFix : fix.suggestedCode}
+      \`\`\`
+    `;
+
+    try {
+      const { data, error } = await runApplyFix({ code: fileContent, fixDescription });
+      if (error || !data) {
+        throw new Error(error || "No data returned from applying fix.");
+      }
+
+      const newCode = data.fixedCode;
+      setFileContent(newCode);
+
+      const updatedItem: ScanHistoryItem = {
+        ...currentHistoryItem,
+        code: newCode,
+      };
+      addScanToHistory(updatedItem);
+      setCurrentHistoryItem(updatedItem);
+
+      toast({
+        title: "Fix Applied",
+        description: "The analysis below may be outdated. Re-scan for an up-to-date report.",
+      });
+
+    } catch (error) {
+      console.error(error);
+      toast({
+        variant: "destructive",
+        title: "Failed to Apply Fix",
+        description: "Could not apply the suggested fix. Please try again.",
+      });
+    } finally {
+      setIsApplyingFix(null);
     }
   };
 
@@ -139,6 +188,8 @@ export default function ScannerPage({ addScanToHistory, initialScan, setInitialS
           onSimplify={handleSimplifyCode}
           isSimplifying={isSimplifying}
           onReset={resetScanner}
+          onApplyFix={handleApplyFix}
+          isApplyingFix={isApplyingFix}
         />
       )}
     </div>
