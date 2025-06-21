@@ -13,6 +13,6 @@
       src="https://cdn.firebasestudio.dev/btn/open_blue_32.svg">
   </picture>
 </a>
-This is a NextJS starter in Firebase Studio.
+This is a NextJS starter in Firebase Studio.jkjk
 
 To get started, take a look at src/app/page.tsx.
