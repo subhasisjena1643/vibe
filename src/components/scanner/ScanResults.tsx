@@ -1,6 +1,7 @@
 "use client";
 import * as React from "react";
 import { AlertTriangle, Wrench, Sparkles, FileCode, RotateCcw, Copy, Wand2, ShieldAlert } from "lucide-react";
+import { ResizableHandle, ResizablePanel, ResizablePanelGroup } from "@/components/ui/resizable";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -162,149 +163,151 @@ export default function ScanResults({
   const currentFixId = selectedIssue ? `${selectedIssue.type}-${selectedIssue.index}` : null;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-full">
-      {/* Left Column: Code Viewer */}
-      <CodeViewer
-        code={originalCode}
-        issue={selectedIssue?.issue ?? null}
-        onApply={selectedIssue ? () => onApplyFix(selectedIssue.issue, selectedIssue.type, selectedIssue.index) : null}
-        isApplyingFix={isApplyingFix === currentFixId}
-      />
-      
-      {/* Right Column: Scan Details & Actions */}
-      <ScrollArea className="h-full">
-        <div className="flex flex-col gap-6 pr-4">
-          <Card className="shadow-lg">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                      <FileCode className="h-6 w-6 text-muted-foreground" />
-                      <CardTitle>{fileName}</CardTitle>
-                  </div>
-                  <Button variant="ghost" size="sm" onClick={() => { onReset(); setSelectedIssue(null); }}>
-                      <RotateCcw className="mr-2 h-4 w-4" />
-                      Scan Another
-                  </Button>
-              </div>
-              <CardDescription>
-                  Scan completed. Select an issue below to view it in the code.
-              </CardDescription>
-            </CardHeader>
-          </Card>
+    <ResizablePanelGroup direction="horizontal" className="h-full w-full">
+      <ResizablePanel defaultSize={50}>
+        <CodeViewer
+          code={originalCode}
+          issue={selectedIssue?.issue ?? null}
+          onApply={selectedIssue ? () => onApplyFix(selectedIssue.issue, selectedIssue.type, selectedIssue.index) : null}
+          isApplyingFix={isApplyingFix === currentFixId}
+        />
+      </ResizablePanel>
+      <ResizableHandle withHandle />
+      <ResizablePanel defaultSize={50}>
+        <ScrollArea className="h-full">
+          <div className="flex flex-col gap-6 pl-6 pr-4">
+            <Card className="shadow-lg">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <FileCode className="h-6 w-6 text-muted-foreground" />
+                        <CardTitle>{fileName}</CardTitle>
+                    </div>
+                    <Button variant="ghost" size="sm" onClick={() => { onReset(); setSelectedIssue(null); }}>
+                        <RotateCcw className="mr-2 h-4 w-4" />
+                        Scan Another
+                    </Button>
+                </div>
+                <CardDescription>
+                    Scan completed. Select an issue below to view it in the code.
+                </CardDescription>
+              </CardHeader>
+            </Card>
 
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="vulnerabilities">
-                <ShieldAlert className="mr-2" />
-                Vulnerabilities ({scanResult.vulnerabilities.length})
-              </TabsTrigger>
-              <TabsTrigger value="improvements">
-                <Wrench className="mr-2" />
-                Improvements ({scanResult.improvements.length})
-              </TabsTrigger>
-            </TabsList>
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="vulnerabilities">
+                  <ShieldAlert className="mr-2" />
+                  Vulnerabilities ({scanResult.vulnerabilities.length})
+                </TabsTrigger>
+                <TabsTrigger value="improvements">
+                  <Wrench className="mr-2" />
+                  Improvements ({scanResult.improvements.length})
+                </TabsTrigger>
+              </TabsList>
 
-            <TabsContent value="vulnerabilities" className="mt-4">
-              <Card>
-                <CardContent className="p-0">
-                    {scanResult.vulnerabilities.length === 0 ? (
-                        <div className="p-6 text-center text-muted-foreground">No vulnerabilities found.</div>
+              <TabsContent value="vulnerabilities" className="mt-4">
+                <Card>
+                  <CardContent className="p-0">
+                      {scanResult.vulnerabilities.length === 0 ? (
+                          <div className="p-6 text-center text-muted-foreground">No vulnerabilities found.</div>
+                      ) : (
+                        <Accordion type="single" collapsible className="w-full" onValueChange={(value) => {
+                          if (value) {
+                            const index = parseInt(value.split('-')[1]);
+                            handleSelectIssue(scanResult.vulnerabilities[index], 'vulnerability', index);
+                          } else {
+                            setSelectedIssue(null);
+                          }
+                        }}>
+                        {scanResult.vulnerabilities.map((vuln, index) => (
+                            <AccordionItem value={`vuln-${index}`} key={index}>
+                            <AccordionTrigger className="px-6 text-left hover:bg-secondary/50">
+                                <div className="flex items-center gap-4">
+                                <Badge variant={getSeverityBadge(vuln.severity)}>{vuln.severity}</Badge>
+                                <span>{vuln.description}</span>
+                                </div>
+                            </AccordionTrigger>
+                            <AccordionContent className="space-y-4 px-6 bg-secondary/20">
+                                <p className="text-sm pt-4"><strong className="font-medium text-muted-foreground">Location:</strong> <code className="font-code text-sm">{vuln.location}</code></p>
+                                <div>
+                                <h4 className="font-medium mb-2 text-muted-foreground">Suggested Fix:</h4>
+                                <pre className="bg-muted p-4 relative font-code text-sm overflow-auto">
+                                    <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={() => copyToClipboard(vuln.suggestedFix, 'Fix')}>
+                                        <Copy className="h-4 w-4" />
+                                    </Button>
+                                    <code>{vuln.suggestedFix}</code>
+                                </pre>
+                                </div>
+                            </AccordionContent>
+                            </AccordionItem>
+                        ))}
+                        </Accordion>
+                      )}
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              <TabsContent value="improvements" className="mt-4">
+                 <Card>
+                  <CardContent className="p-0">
+                    {scanResult.improvements.length === 0 ? (
+                        <div className="p-6 text-center text-muted-foreground">No improvements found.</div>
                     ) : (
-                      <Accordion type="single" collapsible className="w-full" onValueChange={(value) => {
-                        if (value) {
-                          const index = parseInt(value.split('-')[1]);
-                          handleSelectIssue(scanResult.vulnerabilities[index], 'vulnerability', index);
-                        } else {
-                          setSelectedIssue(null);
-                        }
-                      }}>
-                      {scanResult.vulnerabilities.map((vuln, index) => (
-                          <AccordionItem value={`vuln-${index}`} key={index}>
-                          <AccordionTrigger className="px-6 text-left hover:bg-secondary/50">
-                              <div className="flex items-center gap-4">
-                              <Badge variant={getSeverityBadge(vuln.severity)}>{vuln.severity}</Badge>
-                              <span>{vuln.description}</span>
-                              </div>
-                          </AccordionTrigger>
-                          <AccordionContent className="space-y-4 px-6 bg-secondary/20">
-                              <p className="text-sm pt-4"><strong className="font-medium text-muted-foreground">Location:</strong> <code className="font-code text-sm">{vuln.location}</code></p>
-                              <div>
-                              <h4 className="font-medium mb-2 text-muted-foreground">Suggested Fix:</h4>
-                              <pre className="bg-muted p-4 relative font-code text-sm overflow-auto">
-                                  <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={() => copyToClipboard(vuln.suggestedFix, 'Fix')}>
-                                      <Copy className="h-4 w-4" />
-                                  </Button>
-                                  <code>{vuln.suggestedFix}</code>
-                              </pre>
-                              </div>
-                          </AccordionContent>
-                          </AccordionItem>
-                      ))}
-                      </Accordion>
+                        <Accordion type="single" collapsible className="w-full" onValueChange={(value) => {
+                          if (value) {
+                            const index = parseInt(value.split('-')[1]);
+                            handleSelectIssue(scanResult.improvements[index], 'improvement', index);
+                          } else {
+                            setSelectedIssue(null);
+                          }
+                        }}>
+                        {scanResult.improvements.map((imp, index) => (
+                            <AccordionItem value={`imp-${index}`} key={index}>
+                            <AccordionTrigger className="px-6 text-left hover:bg-secondary/50">{imp.description}</AccordionTrigger>
+                            <AccordionContent className="space-y-4 px-6 bg-secondary/20">
+                                <p className="text-sm pt-4"><strong className="font-medium text-muted-foreground">Location:</strong> <code className="font-code text-sm">{imp.location}</code></p>
+                                <div>
+                                <h4 className="font-medium mb-2 text-muted-foreground">Suggested Code:</h4>
+                                <pre className="bg-muted p-4 relative font-code text-sm overflow-auto">
+                                    <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={() => copyToClipboard(imp.suggestedCode, 'Code')}>
+                                        <Copy className="h-4 w-4" />
+                                    </Button>
+                                    <code>{imp.suggestedCode}</code>
+                                </pre>
+                                </div>
+                            </AccordionContent>
+                            </AccordionItem>
+                        ))}
+                        </Accordion>
+                    )}
+                   </CardContent>
+                 </Card>
+              </TabsContent>
+            </Tabs>
+            
+            <Card className="shadow-lg">
+                <CardHeader>
+                    <CardTitle className="flex items-center gap-2"><Sparkles /> Code Simplification</CardTitle>
+                     <CardDescription>Minimize lines and memory usage while preserving logic.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                     {!simplifiedCode ? (
+                        <Button onClick={onSimplify} disabled={isSimplifying || !!isApplyingFix}>
+                            {isSimplifying ? "Simplifying..." : "Run AI Simplification"}
+                            {!isSimplifying && <Sparkles className="ml-2 h-4 w-4" />}
+                        </Button>
+                    ) : (
+                        <div className="space-y-4">
+                            <p className="text-sm text-green-400">Code has been simplified! The updated code is visible in the viewer.</p>
+                            <p className="text-xs text-muted-foreground">Note: Applying fixes will use the most recent version of the code. Simplified code replaces the original.</p>
+                        </div>
                     )}
                 </CardContent>
-              </Card>
-            </TabsContent>
-
-            <TabsContent value="improvements" className="mt-4">
-               <Card>
-                <CardContent className="p-0">
-                  {scanResult.improvements.length === 0 ? (
-                      <div className="p-6 text-center text-muted-foreground">No improvements found.</div>
-                  ) : (
-                      <Accordion type="single" collapsible className="w-full" onValueChange={(value) => {
-                        if (value) {
-                          const index = parseInt(value.split('-')[1]);
-                          handleSelectIssue(scanResult.improvements[index], 'improvement', index);
-                        } else {
-                          setSelectedIssue(null);
-                        }
-                      }}>
-                      {scanResult.improvements.map((imp, index) => (
-                          <AccordionItem value={`imp-${index}`} key={index}>
-                          <AccordionTrigger className="px-6 text-left hover:bg-secondary/50">{imp.description}</AccordionTrigger>
-                          <AccordionContent className="space-y-4 px-6 bg-secondary/20">
-                              <p className="text-sm pt-4"><strong className="font-medium text-muted-foreground">Location:</strong> <code className="font-code text-sm">{imp.location}</code></p>
-                              <div>
-                              <h4 className="font-medium mb-2 text-muted-foreground">Suggested Code:</h4>
-                              <pre className="bg-muted p-4 relative font-code text-sm overflow-auto">
-                                  <Button variant="ghost" size="icon" className="absolute top-2 right-2 h-7 w-7" onClick={() => copyToClipboard(imp.suggestedCode, 'Code')}>
-                                      <Copy className="h-4 w-4" />
-                                  </Button>
-                                  <code>{imp.suggestedCode}</code>
-                              </pre>
-                              </div>
-                          </AccordionContent>
-                          </AccordionItem>
-                      ))}
-                      </Accordion>
-                  )}
-                 </CardContent>
-               </Card>
-            </TabsContent>
-          </Tabs>
-          
-          <Card className="shadow-lg">
-              <CardHeader>
-                  <CardTitle className="flex items-center gap-2"><Sparkles /> Code Simplification</CardTitle>
-                   <CardDescription>Minimize lines and memory usage while preserving logic.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                   {!simplifiedCode ? (
-                      <Button onClick={onSimplify} disabled={isSimplifying || !!isApplyingFix}>
-                          {isSimplifying ? "Simplifying..." : "Run AI Simplification"}
-                          {!isSimplifying && <Sparkles className="ml-2 h-4 w-4" />}
-                      </Button>
-                  ) : (
-                      <div className="space-y-4">
-                          <p className="text-sm text-green-400">Code has been simplified! The updated code is visible in the viewer.</p>
-                          <p className="text-xs text-muted-foreground">Note: Applying fixes will use the most recent version of the code. Simplified code replaces the original.</p>
-                      </div>
-                  )}
-              </CardContent>
-          </Card>
-        </div>
-      </ScrollArea>
-    </div>
+            </Card>
+          </div>
+        </ScrollArea>
+      </ResizablePanel>
+    </ResizablePanelGroup>
   );
 }

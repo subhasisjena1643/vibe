@@ -39,14 +39,6 @@ export default function ScannerPage({ addScanToHistory, initialScan, setInitialS
     }
   }, [initialScan]);
 
-
-  React.useEffect(() => {
-    // Clear initial scan after it has been loaded and the user navigates away
-    return () => {
-      setInitialScan(undefined);
-    }
-  }, [setInitialScan]);
-
   const handleCodeSubmit = async (content: string, name: string) => {
     setFileContent(content);
     setFileName(name);
