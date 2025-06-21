@@ -24,10 +24,20 @@ export default function ScannerPage({ addScanToHistory, initialScan, setInitialS
   const [isScanning, setIsScanning] = React.useState(false);
   const [simplifiedCode, setSimplifiedCode] = React.useState<string | undefined>(initialScan?.simplifiedCode);
   const [isSimplifying, setIsSimplifying] = React.useState(false);
+  const [currentHistoryItem, setCurrentHistoryItem] = React.useState<ScanHistoryItem | null>(initialScan ?? null);
   const {toast} = useToast();
 
   React.useEffect(() => {
-    // Clear initial scan after it has been loaded
+    setFileContent(initialScan?.code ?? null);
+    setFileName(initialScan?.fileName ?? null);
+    setScanResult(initialScan?.result ?? null);
+    setSimplifiedCode(initialScan?.simplifiedCode);
+    setCurrentHistoryItem(initialScan ?? null);
+  }, [initialScan]);
+
+
+  React.useEffect(() => {
+    // Clear initial scan after it has been loaded and the user navigates away
     return () => {
       setInitialScan(undefined);
     }
@@ -38,6 +48,7 @@ export default function ScannerPage({ addScanToHistory, initialScan, setInitialS
     setFileName(name);
     setScanResult(null);
     setSimplifiedCode(undefined);
+    setCurrentHistoryItem(null);
     setIsScanning(true);
 
     try {
@@ -54,6 +65,7 @@ export default function ScannerPage({ addScanToHistory, initialScan, setInitialS
         result: data,
       };
       addScanToHistory(historyItem);
+      setCurrentHistoryItem(historyItem);
     } catch (error) {
       console.error(error);
       toast({
@@ -67,14 +79,23 @@ export default function ScannerPage({ addScanToHistory, initialScan, setInitialS
   };
 
   const handleSimplifyCode = async () => {
-    if (!fileContent) return;
+    if (!fileContent || !currentHistoryItem) return;
     setIsSimplifying(true);
     try {
       const {data, error} = await runCodeSimplification({code: fileContent});
       if (error || !data) {
         throw new Error(error || "No data returned from simplification.");
       }
-      setSimplifiedCode(data.simplifiedCode);
+      const newSimplifiedCode = data.simplifiedCode;
+      setSimplifiedCode(newSimplifiedCode);
+
+      const updatedItem: ScanHistoryItem = {
+        ...currentHistoryItem,
+        simplifiedCode: newSimplifiedCode,
+      };
+      addScanToHistory(updatedItem);
+      setCurrentHistoryItem(updatedItem);
+
       toast({
         title: "Code Simplified",
         description: "The AI has simplified your code.",
@@ -98,6 +119,7 @@ export default function ScannerPage({ addScanToHistory, initialScan, setInitialS
     setScanResult(null);
     setSimplifiedCode(undefined);
     setInitialScan(undefined);
+    setCurrentHistoryItem(null);
   };
 
   if (isScanning) {
@@ -106,7 +128,7 @@ export default function ScannerPage({ addScanToHistory, initialScan, setInitialS
   
   return (
     <div className="w-full max-w-4xl mx-auto">
-      {!fileContent ? (
+      {!fileContent || !scanResult ? (
         <FileUpload onCodeSubmitted={handleCodeSubmit} />
       ) : (
         <ScanResults
