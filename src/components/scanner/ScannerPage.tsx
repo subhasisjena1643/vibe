@@ -33,7 +33,7 @@ export default function ScannerPage({ addScanToHistory, initialScan, setInitialS
     }
   }, [setInitialScan]);
 
-  const handleFileUploaded = async (content: string, name: string) => {
+  const handleCodeSubmit = async (content: string, name: string) => {
     setFileContent(content);
     setFileName(name);
     setScanResult(null);
@@ -41,7 +41,7 @@ export default function ScannerPage({ addScanToHistory, initialScan, setInitialS
     setIsScanning(true);
 
     try {
-      const {data, error} = await runScan({pythonCode: content});
+      const {data, error} = await runScan({cppCode: content});
       if (error || !data) {
         throw new Error(error || "No data returned from scan.");
       }
@@ -107,7 +107,7 @@ export default function ScannerPage({ addScanToHistory, initialScan, setInitialS
   return (
     <div className="w-full max-w-4xl mx-auto">
       {!fileContent ? (
-        <FileUpload onFileUploaded={handleFileUploaded} />
+        <FileUpload onCodeSubmitted={handleCodeSubmit} />
       ) : (
         <ScanResults
           fileName={fileName!}

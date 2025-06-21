@@ -28,7 +28,7 @@ export default function DashboardPage({ scanHistory, viewScan }: DashboardPagePr
           <History className="mx-auto h-12 w-12 text-muted-foreground" />
           <h2 className="mt-4 text-2xl font-headline">No Scans Yet</h2>
           <p className="mt-2 text-muted-foreground">
-            Upload a Python file on the Scanner page to see your history here.
+            Upload a C++ file or paste your code on the Scanner page to see your history here.
           </p>
         </div>
       </div>
